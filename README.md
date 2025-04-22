@@ -29,3 +29,4 @@ A web app to show your exact location and nearby users on a map in real-time.
 ---
 
 This is an MVP. For privacy, locations are not stored permanently and users are anonymous.
+# Location-user
