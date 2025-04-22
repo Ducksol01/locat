@@ -1,40 +1,57 @@
 const express = require('express');
-const http = require('http');
-const cors = require('cors');
-const { Server } = require('socket.io');
-
 const app = express();
-app.use(cors());
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
-});
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
 
-// Store users in memory (for MVP, not production)
-let users = {};
+const PORT = process.env.PORT || 3001;
+
+let users = [];
 
 io.on('connection', (socket) => {
-  // Receive location from client
-  socket.on('updateLocation', (location) => {
-    users[socket.id] = location;
-    // Broadcast all users' locations
-    io.emit('usersLocations', users);
+  console.log('User connected:', socket.id);
+
+  socket.on('setUsername', ({ username, location }) => {
+    const existingUserIndex = users.findIndex(u => u.username === username);
+    if (existingUserIndex >= 0) {
+      users[existingUserIndex] = { 
+        ...users[existingUserIndex], 
+        id: socket.id, 
+        location,
+        lastSeen: Date.now(), 
+        online: true 
+      };
+    } else {
+      users.push({ 
+        id: socket.id, 
+        username, 
+        location, 
+        lastSeen: Date.now(), 
+        online: true 
+      });
+    }
+    io.emit('updateUsers', users);
+  });
+
+  socket.on('updateLocation', ({ username, location }) => {
+    const userIndex = users.findIndex(u => u.username === username);
+    if (userIndex >= 0) {
+      users[userIndex].location = location;
+      users[userIndex].lastSeen = Date.now();
+      io.emit('updateUsers', users);
+    }
   });
 
   socket.on('disconnect', () => {
-    delete users[socket.id];
-    io.emit('usersLocations', users);
+    console.log('User disconnected:', socket.id);
+    const userIndex = users.findIndex(u => u.id === socket.id);
+    if (userIndex >= 0) {
+      users[userIndex].online = false;
+      users[userIndex].lastSeen = Date.now();
+      io.emit('updateUsers', users);
+    }
   });
 });
 
-app.get('/', (req, res) => {
-  res.send('Location Tracker Backend Running');
-});
-
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+http.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
 });
