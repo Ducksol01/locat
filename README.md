@@ -32,3 +32,4 @@ This is an MVP. For privacy, locations are not stored permanently and users are 
 # Location-user
 # Location-user
 # location
+# location
