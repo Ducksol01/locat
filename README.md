@@ -1,35 +1,60 @@
 # Location Tracker
 
-A web app to show your exact location and nearby users on a map in real-time.
+A real-time location tracking web application built with Next.js, React-Leaflet for mapping, and Socket.IO for live updates.
 
 ## Features
-- Shows your current location on a map
-- Shows locations of other users using the site
-- Real-time updates
 
-## How to Run
+- Real-time location sharing
+- Live map view with user markers
+- Username-based user identification
+- Online/offline status indicators
 
-1. Install dependencies:
-   ```sh
+## Setup
+
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
+
+### Installation
+
+1. Clone this repository or download the files.
+2. Install dependencies for the Next.js client:
+   ```bash
+   cd location-tracker
    npm install
    ```
-2. Start the backend and frontend:
-   ```sh
+3. Install dependencies for the server:
+   ```bash
+   cd location-tracker
+   npm install --prefix ./ --package=package.json.server
+   ```
+
+### Running the Application
+
+1. Start the Socket.IO server:
+   ```bash
+   npm run start --prefix ./ --package=package.json.server
+   ```
+2. In a separate terminal, start the Next.js development server:
+   ```bash
    npm run dev
    ```
-   (This will run both backend and frontend concurrently.)
 
-## Project Structure
-- `server.js`: Node.js/Express backend with Socket.IO
-- `client/`: React frontend
+3. Open your browser and navigate to `http://localhost:3000`.
 
-## Tech Stack
-- React.js, Leaflet.js, Socket.IO, Express.js
+### Usage
 
----
+- Allow location access when prompted by the browser.
+- Enter a username to join the tracking system.
+- View all online users on the map with their live locations.
 
-This is an MVP. For privacy, locations are not stored permanently and users are anonymous.
-# Location-user
-# Location-user
-# location
-# location
+## Troubleshooting
+
+- **Location Access Denied**: The app requires location access to function. Ensure you've granted permission in your browser.
+- **Server Connection Issues**: Make sure the Socket.IO server is running on port 3001.
+- **Map Not Loading**: Check your internet connection as the map tiles are loaded from OpenStreetMap.
+
+## License
+
+MIT
+# locat
