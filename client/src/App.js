@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import io from 'socket.io-client';
+import './App.css';
 
 // Fix marker icon issue
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
@@ -28,7 +29,7 @@ function LocationUpdater({ setMyLocation, setUsers }) {
         socket.emit('updateLocation', { lat: latitude, lng: longitude });
       },
       (err) => {
-        alert('Unable to retrieve your location');
+        alert('Unable to retrieve your location. Please ensure location services are enabled and allowed for this site.');
       },
       { enableHighAccuracy: true }
     );
@@ -63,7 +64,7 @@ function MapView({ myLocation, users }) {
     <MapContainer
       center={myLocation || [20.5937, 78.9629]} // Default: India
       zoom={5}
-      style={{ height: '80vh', width: '100%' }}
+      style={{ height: '70vh', width: '100%' }}
       ref={mapRef}
     >
       <TileLayer
@@ -89,34 +90,25 @@ function MapView({ myLocation, users }) {
 
 function OnlineUsersList({ users, myLocation }) {
   return (
-    <div style={{
-      background: '#fff',
-      border: '1px solid #eee',
-      borderRadius: '8px',
-      padding: '1rem',
-      margin: '1rem auto',
-      maxWidth: 350,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-    }}>
-      <h4 style={{marginTop:0}}>Online Users</h4>
-      <ul style={{listStyle:'none', padding:0, margin:0}}>
+    <div className="online-users">
+      <h4>Online Users</h4>
+      <ul>
         {Object.entries(users).map(([id, loc], idx) => {
           if (!loc) return null;
           const isMe = myLocation && loc.lat === myLocation.lat && loc.lng === myLocation.lng;
           return (
-            <li key={id} style={{marginBottom:8, color: isMe ? '#1976d2' : '#333'}}>
-              <span style={{fontWeight: isMe ? 'bold' : 'normal'}}>
+            <li key={id}>
+              <span className={isMe ? 'me' : ''}>
                 {isMe ? 'You' : `User ${idx+1}`}
               </span>
-              <br/>
-              <span style={{fontSize:'0.95em', color:'#888'}}>
+              <span style={{fontSize:'0.93em', color:'#888', marginLeft: 8}}>
                 Lat: {loc.lat.toFixed(5)}, Lng: {loc.lng.toFixed(5)}
               </span>
             </li>
           );
         })}
       </ul>
-      <div style={{fontSize:'0.9em', color:'#aaa', marginTop:6}}>
+      <div className="total">
         Total: {Object.values(users).filter(Boolean).length}
       </div>
     </div>
@@ -128,15 +120,17 @@ function App() {
   const [users, setUsers] = useState({});
 
   return (
-    <div style={{ fontFamily: 'sans-serif', background: '#f9f9f9', minHeight: '100vh' }}>
-      <h2 style={{textAlign: 'center', margin: '1rem 0'}}>Location Tracker</h2>
-      <p style={{textAlign: 'center'}}>Your location and nearby users are shown on the map in real-time.</p>
+    <div className="app-container">
+      <div className="header">
+        <h2>Location Tracker</h2>
+        <p>Your location and nearby users are shown on the map in real-time.</p>
+      </div>
       <LocationUpdater setMyLocation={setMyLocation} setUsers={setUsers} />
       <OnlineUsersList users={users} myLocation={myLocation} />
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <div className="map-wrapper">
         <MapView myLocation={myLocation} users={users} />
       </div>
-      <footer style={{ textAlign: 'center', marginTop: '1rem', color: '#888' }}>
+      <footer>
         For demo only. Locations are not stored permanently.
       </footer>
     </div>
