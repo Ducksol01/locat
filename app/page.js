@@ -6,7 +6,18 @@ import dynamic from 'next/dynamic';
 
 const MapComponent = dynamic(() => import('../components/MapComponent'), { ssr: false });
 
-const socket = io('http://localhost:3001');
+// Get the hostname dynamically (will work in the browser only due to 'use client')
+const getSocketUrl = () => {
+  // Check if window is defined (only in browser)
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
+    const host = window.location.hostname; // This will be the IP or domain name
+    return `${protocol}://${host}:3001`;
+  }
+  return 'http://localhost:3001'; // Fallback for SSR (won't be used with 'use client')
+};
+
+const socket = io(getSocketUrl());
 
 export default function Home() {
   const [location, setLocation] = useState(null);
@@ -15,18 +26,31 @@ export default function Home() {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Request location permission
-    navigator.geolocation.getCurrentPosition(
+    const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         setLocation({ lat: latitude, lng: longitude });
       },
-      (error) => {
-        console.error('Error getting location:', error);
-        alert('Location access is required for this app to work.');
-      }
+      (error) => console.error('Error getting location:', error)
     );
 
+    // Update location every 10 seconds
+    const interval = setInterval(() => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocation({ lat: latitude, lng: longitude });
+        }
+      );
+    }, 10000);
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
     // Socket.io events
     socket.on('connect', () => {
       setIsConnected(true);
